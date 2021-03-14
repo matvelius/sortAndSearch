@@ -9,11 +9,15 @@ let lineIndex = 0
 let n // # of elements
 let k // element to search for
 
+let indexLeft = 0
+let indexRight
+
 rl.on('line', function (line) {
 
   if (lineIndex == 0) {
 
     n = parseInt(line)
+    indexRight = n - 1
 
   } else if (lineIndex == 1) {
 
@@ -22,9 +26,18 @@ rl.on('line', function (line) {
   } else {
 
     const inputArray = line.split(' ').map(el => parseInt(el))
-    const sortedArray = mergeSort(inputArray)
 
-    const indexOfKinSortedArray
+    if (n == 0) {
+      console.log(-1)
+      rl.close()
+      return
+    } else if (n == 1) {
+      console.log(inputArray[0] == k ? 0 : -1)
+      rl.close()
+      return
+    }
+
+    console.log(modifiedBinarySearch(inputArray, k, indexLeft, indexRight))
 
     rl.close()
 
@@ -34,56 +47,52 @@ rl.on('line', function (line) {
 
 })
 
-function mergeSort(array) {
-  const arrayLength = array.length
-  if (arrayLength == 1) { return array } // base case
+function modifiedBinarySearch(array, numberToFind, indexLeft, indexRight) {
 
-  const half = Math.floor(arrayLength / 2)
-
-  // sort left & right halves recursively
-  const left = mergeSort(array.slice(0, half))
-  const right = mergeSort(array.slice(half, arrayLength))
-
-  const leftLength = left.length
-  const rightLength = right.length
-
-  let indexLeft = 0
-  let indexRight = 0
-  let indexResult = 0
-
-  let result = new Array(arrayLength)
-
-  // merge the results
-  while (indexLeft < leftLength && indexRight < rightLength) {
-    if (left[indexLeft] <= right[indexRight]) {
-      result[indexResult] = left[indexLeft]
-      indexLeft++
-    } else {
-      result[indexResult] = right[indexRight]
-      indexRight++
-    }
-    indexResult++
+  if (indexLeft == indexRight) {
+    return -1
   }
 
-  // if one of the arrays still has elements left
-  while (indexLeft < leftLength) {
-    result[indexResult] = left[indexLeft]
-    indexLeft++
-    indexResult++
+  const midIndex = Math.floor((indexRight + indexLeft) / 2)
+  const midValue = array[midIndex]
+
+  if (midValue == numberToFind) { return midIndex }
+
+  let unsortedIndexLeft
+  let unsortedIndexRight
+
+  if (array[indexLeft] < midValue) { // first half is sorted!
+    // indexLeft = 0
+    indexRight = midIndex
+
+    unsortedIndexLeft = midIndex + 1
+    unsortedIndexRight = n - 1
+  } else { // second half is sorted!
+    indexLeft = midIndex + 1
+    indexRight = n - 1
+
+    unsortedIndexLeft = 0
+    unsortedIndexRight = midIndex
   }
 
-  while (indexRight < rightLength) {
-    result[indexResult] = right[indexRight]
-    indexRight++
-    indexResult++
+  if (numberToFind == array[indexLeft]) { return indexLeft }
+  if (numberToFind == array[indexRight]) { return indexRight }
+
+  // if number is in the range of the sorted half
+  if (numberToFind < array[indexRight] && numberToFind > array[indexLeft]) {
+    return binarySearch(array, numberToFind, indexLeft, indexRight)
+    // if number is in the unsorted half
+  } else {
+    if (numberToFind == array[unsortedIndexLeft]) { return unsortedIndexLeft }
+    if (numberToFind == array[unsortedIndexRight]) { return unsortedIndexRight }
+    return modifiedBinarySearch(array, numberToFind, unsortedIndexLeft, unsortedIndexRight)
   }
 
-  return result
 }
 
 // returns index of the number if found, or -1 if not found
 function binarySearch(array, numberToFind, indexLeft, indexRight) {
-  if (indexRight <= indexLeft) {
+  if (indexLeft == indexRight) {
     return -1
   }
 
@@ -98,3 +107,5 @@ function binarySearch(array, numberToFind, indexLeft, indexRight) {
     return binarySearch(array, numberToFind, indexMiddle + 1, indexRight)
   }
 }
+
+// console.log(modifiedBinarySearch([14, 56, 843, -2, 1, 4], 57, 0, 5))
